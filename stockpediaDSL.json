@@ -1,0 +1,34 @@
+{
+    "query": {
+        "security": "String",
+        "expression": {
+            "operator": {
+                "fn": [
+                    "+",
+                    "-",
+                    "*",
+                    "/"
+                ],
+                "arguments": {
+                    "attribute": "String",
+                    "number": "Integer",
+                    "expression": {
+                        "operator": {
+                            "fn": [
+                                "+",
+                                "-",
+                                "*",
+                                "/"
+                            ],
+                            "arguments": {
+                                "attribute": "String",
+                                "number": "Integer",
+                                "expression": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
