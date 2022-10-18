@@ -26,7 +26,7 @@ class Attribute
      * 
      *@ORM\OneToMany(targetEntity="Fact", mappedBy="attribute")
      */
-    private $stockpediaFacts;
+     private $stockpediaFacts;
 
     public function getId(): ?int
     {

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FactRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -12,7 +13,7 @@ class Fact
 {
     /**
      * @ORM\Column(type="float")
-     * @ORM\JoinColumn(name="securityId", nullable=false, referencedColumnName="id")
+     * 
      */
     private $value;
 
@@ -29,7 +30,46 @@ class Fact
      * @ORM\JoinColumn(name="security_id", referencedColumnName="id", nullable=false)
      */
     private $security;
+ 
+    public function __construct()
+    {
+        $this->stockpediaFacts = new ArrayCollection();
+    }
 
+
+    public function addFacts(Attribute $attribute, Security $security, int $value)
+    {
+        $this->stockpediaFacts = [
+            $attribute,
+            $security,
+            $this->setValue($value)
+        ];
+
+        dd($this->stockpediaFacts);
+
+    }
+ 
+    public function getSecurity()
+    {
+        return $this->security;
+    }
+
+    public function setSecurity(Security $security):self
+    {
+        $this->security = $security;
+        return $this;
+    }
+
+    public function getAttribute()
+    {
+        return $this->attribute;
+    }
+
+    public function setAttribute(Attribute $attribute):self
+    {
+        $this->attribute = $attribute;
+        return $this;
+    }
 
     public function getValue(): ?int
     {
@@ -37,9 +77,9 @@ class Fact
     }
 
     public function setValue(int $value): self
-    {
+    { 
         $this->value = $value;
 
         return $this;
-    }
+    } 
 }
