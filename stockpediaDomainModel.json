@@ -1,6 +1,6 @@
 {
     "query": {
-        "security": "String",
+        "security": "string",
         "expression": {
             "operator": {
                 "fn": [
@@ -10,8 +10,8 @@
                     "/"
                 ],
                 "arguments": {
-                    "attribute": "String",
-                    "number": "Integer",
+                    "attribute": "string",
+                    "number": "integer",
                     "expression": {
                         "operator": {
                             "fn": [
@@ -21,8 +21,8 @@
                                 "/"
                             ],
                             "arguments": {
-                                "attribute": "String",
-                                "number": "Integer",
+                                "attribute": "string",
+                                "number": "integer",
                                 "expression": {}
                             }
                         }
