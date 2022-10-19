@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Attribute;
 use App\Entity\Fact;
+use App\Entity\Security;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -75,4 +77,16 @@ class FactRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getFact(Attribute $attributeId, Security $securityId): ?Fact
+    {
+        return $this->createQueryBuilder('f')
+            ->andwhere('f.attribute = :attrId')
+            ->andwhere('f.security = :secId')
+            ->setParameter('attrId', $attributeId)
+            ->setParameter('secId', $securityId)
+            ->getQuery()
+            ->getOneOrNullResult();
+        
+    }
 }
