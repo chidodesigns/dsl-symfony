@@ -7,10 +7,6 @@ use App\Entity\Fact;
 use App\Entity\Security;
 use App\Traits\StockpediaDomainModelTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use App\Exception\CustomBadRequestHttpException;
-use App\Traits\AttributeManagerTrait;
-use App\Traits\FactManagerTrait;
-use App\Traits\SecurityManagerTrait;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,9 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class FactsController extends AbstractController
 {
     use StockpediaDomainModelTrait;
-    use FactManagerTrait;
-    use SecurityManagerTrait;
-    use AttributeManagerTrait;
+   
 
     /**
      * @Route("/facts", name="app_facts")
@@ -45,90 +39,9 @@ class FactsController extends AbstractController
 
         $searchQuery = json_decode($request->getContent(), true);
 
-        //  Basic Query Ruling
-
-        //  First 3 Levels MUST be set
-
-        //////// FIRST LEVEL - security + expression //////
-
-        // Rule [verb]
-        $securitySymbol = $this->domainModel->checkDslQueryFormat($searchQuery, "security");
-
-        if ($securitySymbol) {
-            $dbSecuritySymbolId = $this->securityManager->findSecuritySymbol($searchQuery['security']);
-        }
-
-        //  Format Check [Noun]
-        $expression = $this->domainModel->checkDslQueryFormat($searchQuery, "expression");
-
-        //////// SECOND LEVEL - operator //////
-
-        $expressionOperator = $this->domainModel->checkDslQueryFormat($searchQuery['expression'], "operator");
-
-        // Third Level - fn + arguments
-
-        // Rule [verb]
-        $expressionOperatorFn = $this->domainModel->checkDslQueryFormat($searchQuery['expression']['operator'], "fn");
-
-        $expressionOperatorFnExists = $this->domainModel->checkOperatorFn($searchQuery['expression']['operator']["fn"]) ? $searchQuery['expression']['operator']["fn"] : false;
-
-
-        //  Format Check [Noun]
-        $expressionOperationArguments = $this->domainModel->checkDslQueryFormat($searchQuery['expression']['operator'], "arguments");
-
-
-        ////// FOURTH LEVEL - attribute + number + expression //////
-
-        $expressionOperationArgumentsAttribute = isset($searchQuery['expression']['operator']['arguments']['attribute']) ? $searchQuery['expression']['operator']['arguments']['attribute'] : false;
-
-        if ($expressionOperationArgumentsAttribute) {
-            $dbAttributeNameId = $this->attributeManager->findAttributeName($expressionOperationArgumentsAttribute);
-        }
-
-        $expressionOperationArgumentsNumber = isset($searchQuery['expression']['operator']['arguments']['number']) ? $searchQuery['expression']['operator']['arguments']['number'] : false;
-
-        if ($expressionOperationArgumentsNumber) {
-
-            if (!is_numeric($expressionOperationArgumentsNumber)) {
-                throw new CustomBadRequestHttpException([
-                    'status' => 0,
-                    'errorCode' => 'QUERYF100',
-                    'errorMessage' => 'Invalid Query Format: argument number must be an integer'
-                ], 400);
-            }
-        }
-
-        $expressionOperationArgumentsExpression = isset($searchQuery['expression']['operator']['arguments']['expression']) ? $searchQuery['expression']['operator']['arguments']['expression'] : false;
-
-        $doesExpArgsExist = $this->domainModel->checkDslExpressionArgs($expressionOperationArgumentsAttribute, $expressionOperationArgumentsNumber, $expressionOperationArgumentsExpression);
-
-        // Now Search For Security Fact
-        $factQueryValue = $this->factManager->selectFact($dbAttributeNameId, $dbSecuritySymbolId);
-
-        // Finish Off Stockedpedia Search Query
-        $resultingOperator = $this->returnOperatorMethod($expressionOperatorFnExists);
-        var_dump($resultingOperator);
-        return $this->json($factQueryValue);
-    }
-
-    public function returnOperatorMethod(string $fn)
-    {
-        switch ($fn) {
-            case "+":
-                return 'ADD';
-                break;
-            case "-":
-                return 'SUBTRACT';
-                break;
-            case "*":
-                return 'MULTIPLY';
-                break;
-            case "/":
-                return 'DIVIDE';
-                break;
-            default:
-                echo 'Finished';
-        }
+        $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
+        
+        return $this->json($queryBuildResponse);
     }
 
     /**
@@ -163,3 +76,7 @@ class FactsController extends AbstractController
 //  Notes Cannot have two object keys named expression - so bug/flaw in current DSL
 //  Abstract The CustomBadExceptions Out Of Model Layer and Back into Controller
 //  Checkn Expression Args does not check for 1 expression sent needs a refactor to check 
+//  JSON Decode vs Symfony Serializer (had issues trying to get this installed)
+//  Using POSTMAN had issues duplicating two fields in JSON post BODY so have not built/test for two arguments of the same type.
+//  After building v1 I reaslise the current UML model of the DSL is to verbose - which I created - therefore the querybuilder is very rudimentary and only tackles a few use cases - it needs to be more dynamic.
+//  Better use for handling expressions would be using the Symfony Expression Language it would allow expressions and expression methods to be created a lot more smoothly.

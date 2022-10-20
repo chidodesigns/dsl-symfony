@@ -3,9 +3,93 @@
 namespace App\DomainModels;
 
 use App\Exception\CustomBadRequestHttpException;
+use App\Traits\AttributeManagerTrait;
+use App\Traits\FactManagerTrait;
+use App\Traits\SecurityManagerTrait;
 
 class StockpediaBasicModel
 {
+    private $security;
+    private $fn;
+
+    private $factValue;
+
+    private $argAttribute;
+    private $argNumber;
+    private $argExpression;
+
+    use FactManagerTrait;
+    use SecurityManagerTrait;
+    use AttributeManagerTrait;
+
+    public function dslQueryBuilder($query){
+
+        //  Basic Query Ruling
+
+        //  First 3 Levels MUST be set
+
+        //////// FIRST LEVEL - security + expression //////
+
+        // Rule [verb]
+        $securitySymbol = $this->checkDslQueryFormat($query, "security");
+
+        if ($securitySymbol) {
+            $this->security = $this->securityManager->findSecuritySymbol($query['security']);
+        }
+
+        //  Format Check [Noun]
+        $expression = $this->checkDslQueryFormat($query, "expression");
+
+        //////// SECOND LEVEL - operator //////
+
+        $expressionOperator = $this->checkDslQueryFormat($query['expression'], "operator");
+
+        // Third Level - fn + arguments
+
+        // Rule [verb]
+        $expressionOperatorFn = $this->checkDslQueryFormat($query['expression']['operator'], "fn");
+
+        $expressionOperatorFnExists = $this->checkOperatorFn($query['expression']['operator']["fn"]) ? $query['expression']['operator']["fn"] : false;
+
+
+        //  Format Check [Noun]
+        $expressionOperationArguments = $this->checkDslQueryFormat($query['expression']['operator'], "arguments");
+
+
+        ////// FOURTH LEVEL - attribute + number + expression //////
+
+        $expressionOperationArgumentsAttribute = isset($query['expression']['operator']['arguments']['attribute']) ? $query['expression']['operator']['arguments']['attribute'] : false;
+
+        if ($expressionOperationArgumentsAttribute) {
+            $this->argAttribute = $this->attributeManager->findAttributeName($expressionOperationArgumentsAttribute);
+        }
+
+        $this->argNumber = isset($query['expression']['operator']['arguments']['number']) ? $query['expression']['operator']['arguments']['number'] : false;
+
+        if ($this->argNumber) {
+
+            if (!is_numeric($this->argNumber)) {
+                throw new CustomBadRequestHttpException([
+                    'status' => 0,
+                    'errorCode' => 'QUERYF100',
+                    'errorMessage' => 'Invalid Query Format: argument number must be an integer'
+                ], 400);
+            }
+        }
+
+        $this->argExpression = isset($query['expression']['operator']['arguments']['expression']) ? $query['expression']['operator']['arguments']['expression'] : false;
+
+        $doesExpArgsExist = $this->checkDslExpressionArgs($expressionOperationArgumentsAttribute,  $this->argNumber, $this->argExpression);
+
+        // Now Search For Security Fact
+        $this->factValue = $this->factManager->selectFact($this->argAttribute, $this->security);
+
+        // Finish Off Stockedpedia Search Query
+        $result = $this->returnOperatorMethod($expressionOperatorFnExists);
+
+        return $result;
+    
+    }
 
     public function checkDslQueryFormat($dslArray, string $dslArrayTtitle)
     {
@@ -59,7 +143,8 @@ class StockpediaBasicModel
     {
         switch ($fn) {
             case "+":
-                return 'ADD';
+                return $this->argNumber + $this->factValue;
+
                 break;
             case "-":
                 return 'SUBTRACT';
