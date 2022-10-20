@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Attribute;
 use App\Entity\Fact;
 use App\Entity\Security;
+use App\Traits\EntityManagerTrait;
 use App\Traits\StockpediaDomainModelTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -15,8 +16,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FactsController extends AbstractController
 {
+    use EntityManagerTrait;
     use StockpediaDomainModelTrait;
-   
+
 
     /**
      * @Route("/facts", name="app_facts")
@@ -40,7 +42,7 @@ class FactsController extends AbstractController
         $searchQuery = json_decode($request->getContent(), true);
 
         $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
-        
+
         return $this->json($queryBuildResponse);
     }
 
@@ -51,24 +53,44 @@ class FactsController extends AbstractController
      */
     public function createFact()
     {
-        $security = new Security();
-        $security->setSymbol('ABC');
-        $this->entityManager->persist($security);
-        $attribute = new Attribute();
-        $attribute->setName('price');
-        $this->entityManager->persist($attribute);
-        $this->entityManager->flush();
+        $symbols = array('ABC', 'BCD', 'CDE', 'DEF', 'EFG', 'FGH', 'GHI', 'HIJ', 'IJK', 'JKL');
+        $attrs = array('price', 'eps', 'dps', 'sales', 'ebitda', 'free_cash_flow', 'assets', 'liabilities', 'debt', 'shares');
 
-        $fact = new Fact();
-        $fact->setValue(4);
-        $fact->setAttribute($attribute);
-        $fact->setSecurity($security);
-        $this->entityManager->persist($fact);
-        $this->entityManager->flush();
+        foreach($symbols as $value){
+            $security = new Security();
+            $security->setSymbol($value);
+            $this->entityManager->persist($security);
+            $this->entityManager->flush();
+        }
+
+        foreach($attrs as $value){
+            $attribute = new Attribute();
+            $attribute->setName($value);
+            $this->entityManager->persist($attribute);
+            $this->entityManager->flush();
+        }
+
+        $securityRepo = $this->entityManager->getRepository(Security::class);
+        $securities = $securityRepo->findAll();
+        $attributeRepo = $this->entityManager->getRepository(Attribute::class);
+        $attributes = $attributeRepo->findAll();
+
+
+        foreach ($securities as $security) {
+            foreach($attributes as $attribute){
+                $fact = new Fact();
+                $fact->setValue(rand(0,50));
+                $fact->setAttribute($attribute);
+                $fact->setSecurity($security);
+                $this->entityManager->persist($fact);
+                $this->entityManager->flush();
+            }
+        }
 
 
         return new Response(sprintf('Fact has been created'));
     }
+
 
 }
 
@@ -80,3 +102,19 @@ class FactsController extends AbstractController
 //  Using POSTMAN had issues duplicating two fields in JSON post BODY so have not built/test for two arguments of the same type.
 //  After building v1 I reaslise the current UML model of the DSL is to verbose - which I created - therefore the querybuilder is very rudimentary and only tackles a few use cases - it needs to be more dynamic.
 //  Better use for handling expressions would be using the Symfony Expression Language it would allow expressions and expression methods to be created a lot more smoothly.
+//  Would need to add a fixtures function loop through both data sets in security and attribute and create both entities with a value assigned next to them for the fact's table.
+
+//  Postman Req:
+
+// {
+//     "security": "ABC",
+//     "expression": {
+//         "operator": {
+//             "fn": "+",
+//             "arguments": {
+//                 "attribute": "price",
+//                 "number": 2
+//             }
+//         }
+//     }
+// }
