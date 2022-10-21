@@ -19,17 +19,6 @@ class FactsController extends AbstractController
     use EntityManagerTrait;
     use StockpediaDomainModelTrait;
 
-
-    /**
-     * @Route("/facts", name="app_facts")
-     */
-    public function index(): Response
-    {
-        return $this->render('facts/index.html.twig', [
-            'controller_name' => 'FactsController',
-        ]);
-    }
-
     /**
      * @Route("/facts/dsl", name="app_facts_dsl")
      * @Method({"POST"})
