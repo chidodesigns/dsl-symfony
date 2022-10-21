@@ -51,7 +51,11 @@ class StockpediaBasicModel
          * keyword: 'attribute': [Entity Model]
          * keyword: 'number" [Action Var]
          * ///////////
-         * 
+         * Class Notes ---
+         * - Each Class property should have its own Getters && Setters making storing and access information clearer for the query Builder.
+         * - Potentially seperate the layers between the builder analysing the domain model format and then the processing/interperting of the data within the format * another manager class or service for this query data processing work *
+         * - Query Builder currently cannot handle an expression being sent as an argument - would need to develop a few functions that strictly deal with the [query formatter]:keyword:arguments
+         * - Query Builder makes 3 trips to DB this could to many DB requests per call in larger app 
          */
 
         
@@ -133,7 +137,13 @@ class StockpediaBasicModel
         //  Look for fn to trigger a function call
         $result = $this->returnOperatorMethod($expressionOperatorFnExists);
 
-        return $result;
+        return [
+            'security' => $query['security'],
+            'attribute' => $expressionOperationArgumentsAttribute,
+            'operator_fn' => $this->fn,
+            'operator_arguments' => $query['expression']['operator']['arguments'],
+            'expression_result' => $result
+        ];
     }
 
     public function checkDslQueryFormat($dslArray, string $dslArraytitle)
@@ -195,6 +205,7 @@ class StockpediaBasicModel
     {
         $operators = ["+", "-",  "*", "/"];
         if (in_array($fn, $operators)) {
+            $this->fn = $fn;
             return true;
         } else {
             throw new CustomBadRequestHttpException([
@@ -209,7 +220,7 @@ class StockpediaBasicModel
     {
         switch ($fn) {
             case "+":
-                return $this->argNumber + $this->factValue;
+                return $this->addQueryParams($this->argNumber , $this->factValue);
 
                 break;
             case "-":
@@ -224,5 +235,9 @@ class StockpediaBasicModel
             default:
                 echo 'Finished';
         }
+    }
+
+    public function addQueryParams ($a, $b){
+        return $a + $b;
     }
 }
