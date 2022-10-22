@@ -21,7 +21,10 @@ class AttributeManager
                 'errorMessage' => 'Entity Not Found'
             ], 404);
         }
-        return $attrName->getId();
+        return [
+            'attr_id' => $attrName->getId(),
+            'attr_name' => $attrName->getName()
+        ];
     }
 
 }
