@@ -87,6 +87,6 @@ class FactRepository extends ServiceEntityRepository
             ->setParameter('secId', $securityId)
             ->getQuery()
             ->getOneOrNullResult();
-        
     }
+
 }
