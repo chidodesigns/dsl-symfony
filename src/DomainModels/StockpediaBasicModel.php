@@ -52,15 +52,39 @@ class StockpediaBasicModel
 
         //  Check Arg $a is set
         $a = $this->checkDslQueryFormat($query['expression'], "a");
-        //  Returns result for this param
-        $aArgResult = $this->dslCheckArgType($query['expression']['a']);
-
-        //  Check Arg $a is set
+        //  Checks & Returns Data Type Of Param
+        $aDataType = $this->getDataType($query['expression']['a']);
+        //  Checks & Runs Program To Evaluate Result
+        //  Check Arg $b is set
         $b = $this->checkDslQueryFormat($query['expression'], "b");
+        //  Checks & Returns Data Type Of Param
+        $bDataType = $this->getDataType($query['expression']['b']);
+
+        if($aDataType == 'string' && $bDataType == 'string')
+        {
+            $attribute1 = $this->attributeManager->findAttributeName($query['expression']['a']);
+            $attribute2 = $this->attributeManager->findAttributeName($query['expression']['b']);
+            $this->factValue1 = $this->factManager->selectFact($attribute1['attr_id'], $this->security);
+            $this->factValue2 = $this->factManager->selectFact($attribute2['attr_id'], $this->security);
+            if($this->fnType == 'subtract'){
+                $expression = $this->factValue2 . $this->fn . $this->factValue1;
+            }else{
+                $expression = $this->factValue1 . $this->fn . $this->factValue2;   
+            }
+            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+            return [
+                'query' => $query,
+                'expression_result' => $evaluatedExpression
+            ];
+        }
+
+        $aArgResult = $this->dslCheckArgType($query['expression']['a']);
+        //  Checks & Runs Program To Evaluate Result
         $bArgResult = $this->dslCheckArgType($query['expression']['b']);
 
-        //  Handles - When both arg expressions are NOT expressions
-        if ($this->attribute !== null && $this->number !== null) {
+    
+        //  Handles - When both arg expressions is NOT expressions
+        if ($this->attribute !== null && $this->number !== null && $aDataType !== 'array' && $bDataType !== 'array')  {
             //  Search within the Fact Collection to find corresponding attribute && security
             $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
 
@@ -84,15 +108,44 @@ class StockpediaBasicModel
             ];
         }
 
-        // if($this->attribute !== null && $this->number == null && $aArgResult !== null && $bArgResult == null){
-        //     $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
-        //     $expression = $this->factValue . $this->fn . $aArgResult;
-        //     $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
-        //     return [
-        //         'query' => $query,
-        //         'expression_result' => $evaluatedExpression
-        //     ];
-        // }
+    
+       
+        if($aDataType == 'array' && $bDataType == 'array'){
+           
+            if($this->fnType == 'subtract'){
+                $expression = $bArgResult . $this->fn . $aArgResult;
+            }else{
+                $expression = $aArgResult . $this->fn . $bArgResult;
+            }
+
+            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+            return [
+                'query' => $query,
+                'expression_result' => $evaluatedExpression
+            ];
+        }
+
+        if(($aDataType == 'array' && $bDataType !== 'array') || ($bDataType == 'array' && $aDataType !== 'array')){
+         
+            $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
+            
+            if($aDataType == 'array' && $this->fnType == 'subtract'){
+               
+                $expression = $this->factValue . $this->fn . $aArgResult;
+            }
+
+            if($bDataType == 'array' && $this->fnType == 'subtract'){
+               
+                $expression = $bArgResult . $this->fn . $this->factValue;
+            }
+
+            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+            return [
+                'query' => $query,
+                'expression_result' => $evaluatedExpression
+            ];
+
+        }
 
     }
 
@@ -105,6 +158,7 @@ class StockpediaBasicModel
                 'errorMessage' => 'Invalid Query Format:' . $dslArraytitle . ' required'
             ], 400);
         }
+        
         return array_key_exists($dslArraytitle, $dslArray);
     }
 
@@ -135,14 +189,12 @@ class StockpediaBasicModel
             //  [ENTITY MODEL] : keyword: attribute
             case "string":
                 $this->dslArgIsString($arg);
-                return['data_type' => 'string'];
-                //  If the arg is an expression and the first arg is a string return attribute
                 if ($isArgAnExpression) {
                     return array_merge($this->attributeManager->findAttributeName($arg), ['data_type' => $dataType]);
                 }
                 break;
             case "array":
-                $this->dslArgIsExpression($arg);
+                return $this->dslArgIsExpression($arg);
                 break;
             case "integer":
                 $this->number = $arg;
@@ -152,7 +204,6 @@ class StockpediaBasicModel
                         'value' => $arg
                     ];
                 }
-                return['data_type' => 'integer'];
                 break;
             default:
                 throw new CustomBadRequestHttpException([
@@ -185,12 +236,14 @@ class StockpediaBasicModel
 
         $b = $this->dslCheckArgType($arg['b'], true);
 
-        $this->dslArgExpressionEvaluate($operator, $a, $b);
+        $expressionEvaluated = $this->dslArgExpressionEvaluate($operator, $a, $b);
+
+        return $expressionEvaluated;
     }
 
     public function dslArgExpressionEvaluate($operator, $a, $b)
     {
-
+   
         if ($a['data_type'] == 'string' && $b['data_type'] == 'string') {
             $attributeFactVal1 = $this->factManager->selectFact($a['attr_id'], $this->security);
             $attributeFactVal2 = $this->factManager->selectFact($b['attr_id'], $this->security);
@@ -208,13 +261,13 @@ class StockpediaBasicModel
         if ($a['data_type'] == 'string' && $b['data_type'] == 'integer') {
             $attributeFactVal = $this->factManager->selectFact($a['attr_id'], $this->security);
             $integerArg = $b['value'];
-
-            if($operator['operator_type'] == 'subtract'){
-                $expression =  $integerArg . $operator .  $attributeFactVal;
+            if(isset($operator['operator_type'])){
+                if($operator['operator_type']  == 'subtract'){
+                    $expression =  $integerArg . $operator['operator'] .  $attributeFactVal;
+                }
             }else{
                 $expression = $attributeFactVal . $operator . $integerArg;
             }
-
             $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
             return $evaluatedExpression;
         }
@@ -295,5 +348,10 @@ class StockpediaBasicModel
                 'errorMessage' => 'Invalid Query Format: operator fn not valid'
             ], 400);
         }
+    }
+
+    public function getDataType($data)
+    {
+        return gettype($data);
     }
 }

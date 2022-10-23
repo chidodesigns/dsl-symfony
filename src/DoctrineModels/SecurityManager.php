@@ -16,7 +16,7 @@ class SecurityManager
         if (!$secSymbol) {
             throw new CustomBadRequestHttpException([
                 'status' => 0,
-                'errorCode' => 'ENTITY100',
+                'errorCode' => 'ENSEC100',
                 'errorMessage' => 'Entity Not Found'
             ], 404);
         }

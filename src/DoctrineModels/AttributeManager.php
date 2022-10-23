@@ -17,7 +17,7 @@ class AttributeManager
         if (!$attrName) {
             throw new CustomBadRequestHttpException([
                 'status' => 0,
-                'errorCode' => 'ENTITY100',
+                'errorCode' => 'ENATTR100',
                 'errorMessage' => 'Entity Not Found'
             ], 404);
         }

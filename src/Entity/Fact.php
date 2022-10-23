@@ -17,6 +17,13 @@ class Fact
      */
     private $value;
 
+      /**
+     * @ORM\Id()
+     * @ORM\ManyToOne(targetEntity="Security", inversedBy="stockpediaFacts")
+     * @ORM\JoinColumn(name="security_id", referencedColumnName="id", nullable=false)
+     */
+    private $security;
+
     /**
      * @ORM\Id()
      * @ORM\ManyToOne(targetEntity="Attribute", inversedBy="stockpediaFacts")
@@ -24,12 +31,7 @@ class Fact
      */
     private $attribute;
 
-     /**
-     * @ORM\Id()
-     * @ORM\ManyToOne(targetEntity="Security", inversedBy="stockpediaFacts")
-     * @ORM\JoinColumn(name="security_id", referencedColumnName="id", nullable=false)
-     */
-    private $security;
+   
  
     public function __construct()
     {

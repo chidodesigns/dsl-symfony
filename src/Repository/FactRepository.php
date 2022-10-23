@@ -81,12 +81,11 @@ class FactRepository extends ServiceEntityRepository
     public function getFact(Attribute $attributeId, Security $securityId): ?Fact
     {
         return $this->createQueryBuilder('f')
-            ->andwhere('f.attribute = :attrId')
             ->andwhere('f.security = :secId')
-            ->setParameter('attrId', $attributeId)
+            ->andwhere('f.attribute = :attrId')
             ->setParameter('secId', $securityId)
+            ->setParameter('attrId', $attributeId)
             ->getQuery()
             ->getOneOrNullResult();
     }
-
 }
