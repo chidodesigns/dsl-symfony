@@ -2,7 +2,6 @@
 namespace App\DoctrineModels;
 
 use App\Entity\Attribute;
-use App\Entity\Fact;
 use App\Entity\Security;
 use App\Traits\FactRepositoryTrait;
 use App\Exception\CustomBadRequestHttpException;

@@ -15,7 +15,7 @@ class ExpressionLanguageService
         $this->expressionLanguage = new ExpressionLanguage();
     }
 
-    public function evaluateExpression ($expression)
+    public function evaluateExpression (string $expression) :string
     {
         return $this->expressionLanguage->evaluate($expression);
     }

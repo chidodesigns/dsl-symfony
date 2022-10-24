@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\DomainModels\JsonDomainModel;
 use App\Entity\Attribute;
 use App\Entity\Fact;
 use App\Entity\Security;
+use App\Exception\CustomBadRequestHttpException;
+use App\Services\QueryDataChecker;
 use App\Traits\EntityManagerTrait;
 use App\Traits\StockpediaDomainModelTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +22,7 @@ class FactsController extends AbstractController
     use EntityManagerTrait;
     use StockpediaDomainModelTrait;
 
+
     /**
      * @Route("/facts/dsl", name="app_facts_dsl")
      * @Method({"POST"})
@@ -28,11 +32,41 @@ class FactsController extends AbstractController
     public function dsl(Request $request): JsonResponse
     {
 
-        $searchQuery = json_decode($request->getContent(), true);
+        $query = $request->getContent();
+        $queryToBeChecked = json_decode($query, true);
 
-        $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
+        $queryDataChecker = new QueryDataChecker($queryToBeChecked);
 
-        return $this->json($queryBuildResponse);
+        $doesSecurityKeyExist = $queryDataChecker->offsetExists('security');
+        $doesExpressionkeyExist = $queryDataChecker->offsetExists('expression');
+
+        if (!$doesSecurityKeyExist || !$doesExpressionkeyExist) {
+            throw new CustomBadRequestHttpException([
+                'status' => 0,
+                'errorCode' => 'QUERYF100',
+                'errorMessage' => 'Invalid Query Format: Your query requires a security and expression'
+            ], 400);
+        } else {
+            $security = $queryDataChecker->offsetGet('security');
+            $expression = $queryDataChecker->offsetGet('expression');
+        }
+
+        try {
+            //  Establish Domain Model
+            $jsonDomainModel = new JsonDomainModel($security, $expression);
+        } catch (CustomBadRequestHttpException $th) {
+            throw new CustomBadRequestHttpException([
+                'status' => 0,
+                'errorCode' => 'SERVER100',
+                'errorMessage' => 'Server Error: Failed To Create Domain Model'
+            ], 500);
+        }
+
+        var_dump($jsonDomainModel);
+
+        // $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
+
+        return $this->json($queryDataChecker);
     }
 
     /**
@@ -45,14 +79,14 @@ class FactsController extends AbstractController
         $symbols = array('ABC', 'BCD', 'CDE', 'DEF', 'EFG', 'FGH', 'GHI', 'HIJ', 'IJK', 'JKL');
         $attrs = array('price', 'eps', 'dps', 'sales', 'ebitda', 'free_cash_flow', 'assets', 'liabilities', 'debt', 'shares');
 
-        foreach($symbols as $value){
+        foreach ($symbols as $value) {
             $security = new Security();
             $security->setSymbol($value);
             $this->entityManager->persist($security);
             $this->entityManager->flush();
         }
 
-        foreach($attrs as $value){
+        foreach ($attrs as $value) {
             $attribute = new Attribute();
             $attribute->setName($value);
             $this->entityManager->persist($attribute);
@@ -66,9 +100,9 @@ class FactsController extends AbstractController
 
 
         foreach ($securities as $security) {
-            foreach($attributes as $attribute){
+            foreach ($attributes as $attribute) {
                 $fact = new Fact();
-                $fact->setValue(rand(0,50));
+                $fact->setValue(rand(0, 50));
                 $fact->setAttribute($attribute);
                 $fact->setSecurity($security);
                 $this->entityManager->persist($fact);
@@ -79,8 +113,6 @@ class FactsController extends AbstractController
 
         return new Response(sprintf('Fact has been created'));
     }
-
-
 }
 
 
