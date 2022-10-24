@@ -37,5 +37,7 @@ abstract class DomainModel
         return $this->expression;
     }
 
+    abstract public function write():array;
+
  
 }

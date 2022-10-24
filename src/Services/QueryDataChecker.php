@@ -46,8 +46,7 @@ class QueryDataChecker implements ArrayAccess
         
     }
 
-
-    protected function count(array $dslArray, int $arrayCount ): int
+    public function count(array $dslArray, int $arrayCount ): int
     {
         $count = count($dslArray);
         if($count !== $arrayCount){
@@ -55,6 +54,20 @@ class QueryDataChecker implements ArrayAccess
         }
         return true;
 
+    }
+
+    protected function checkIfArray(array $dslArray): bool
+    {
+        if(!is_array($dslArray)){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    public function searchExpressionArray($searchVal):bool
+    {
+        return array_key_exists($searchVal, $this->expression['expression']);
     }
 
     

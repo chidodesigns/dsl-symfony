@@ -9,6 +9,7 @@ use App\Entity\Security;
 use App\Exception\CustomBadRequestHttpException;
 use App\Services\QueryDataChecker;
 use App\Traits\EntityManagerTrait;
+use App\Traits\SecurityManagerTrait;
 use App\Traits\StockpediaDomainModelTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class FactsController extends AbstractController
 {
     use EntityManagerTrait;
+    use SecurityManagerTrait;
     use StockpediaDomainModelTrait;
 
 
@@ -31,7 +33,6 @@ class FactsController extends AbstractController
      */
     public function dsl(Request $request): JsonResponse
     {
-
         $query = $request->getContent();
         $queryToBeChecked = json_decode($query, true);
 
@@ -51,6 +52,32 @@ class FactsController extends AbstractController
             $expression = $queryDataChecker->offsetGet('expression');
         }
 
+        // Process Expression
+
+        //  If array does not have 3 values then invalid
+        $isExpressionFormatValid = $queryDataChecker->count($expression, 3);
+
+        if(!$isExpressionFormatValid){
+            throw new CustomBadRequestHttpException([
+                'status' => 0,
+                'errorCode' => 'QUERYF100',
+                'errorMessage' => 'Invalid Query Format: Your array expression is formatted incorrectly'
+            ], 400);
+        }
+
+        $doesFnOperatorExist = $queryDataChecker->searchExpressionArray('fn');
+        $doesAExist = $queryDataChecker->searchExpressionArray('a');
+        $doesBExist = $queryDataChecker->searchExpressionArray('b');
+
+        if(!$doesFnOperatorExist || !$doesAExist || !$doesBExist  ){
+            throw new CustomBadRequestHttpException([
+                'status' => 0,
+                'errorCode' => 'QUERYF100',
+                'errorMessage' => 'Invalid Query Format: Your expression requires an fn, a, b arguments'
+            ], 400);
+        }
+
+        //  Create JSON Domain Model 
         try {
             //  Establish Domain Model
             $jsonDomainModel = new JsonDomainModel($security, $expression);
@@ -62,7 +89,7 @@ class FactsController extends AbstractController
             ], 500);
         }
 
-        var_dump($jsonDomainModel);
+        var_dump($jsonDomainModel->getFn());
 
         // $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
 
