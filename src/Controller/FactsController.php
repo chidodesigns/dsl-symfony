@@ -10,8 +10,6 @@ use App\Exception\CustomBadRequestHttpException;
 use App\Services\QueryDataBuilder;
 use App\Services\QueryDataChecker;
 use App\Services\QueryDataExecutor;
-use App\Traits\SecurityManagerTrait;
-use App\Traits\StockpediaDomainModelTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -22,9 +20,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FactsController extends AbstractController
 {
-    use SecurityManagerTrait;
-    use StockpediaDomainModelTrait;
-
+  
     /** @var EntityManagerInterface $entityManager */
     private $entityManager;
 
