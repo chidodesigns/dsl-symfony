@@ -139,7 +139,7 @@ class FactsController extends AbstractController
         foreach ($securities as $security) {
             foreach ($attributes as $attribute) {
                 $fact = new Fact();
-                $fact->setValue(rand(0, 50));
+                $fact->setValue($security->getId() * $attribute->getId());
                 $fact->setAttribute($attribute);
                 $fact->setSecurity($security);
                 $this->entityManager->persist($fact);
