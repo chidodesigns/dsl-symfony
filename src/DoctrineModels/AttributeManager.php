@@ -1,17 +1,17 @@
 <?php
 namespace App\DoctrineModels;
 
-use App\Traits\EntityManagerTrait;
 use App\Entity\Attribute;
 use App\Exception\CustomBadRequestHttpException;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AttributeManager 
 {
-    use EntityManagerTrait;
+ 
 
-    public function findAttributeName(string $name)
+    public function findAttributeName(EntityManagerInterface $entityManager, string $name)
     {
-        $repo = $this->entityManager->getRepository(Attribute::class);
+        $repo = $entityManager->getRepository(Attribute::class);
         $attrName = $repo->findOneBy(['name' => $name]);
 
         if (!$attrName) {

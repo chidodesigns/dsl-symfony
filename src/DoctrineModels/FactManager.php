@@ -2,21 +2,22 @@
 namespace App\DoctrineModels;
 
 use App\Entity\Attribute;
+use App\Entity\Fact;
 use App\Entity\Security;
-use App\Traits\FactRepositoryTrait;
+
 use App\Exception\CustomBadRequestHttpException;
-use App\Traits\EntityManagerTrait;
+
+use Doctrine\ORM\EntityManagerInterface;
 
 class FactManager
 {
-    use FactRepositoryTrait;
-    use EntityManagerTrait;
-
-    public function selectFact(int $attributeId, int $secSymbolId)
+ 
+    public function selectFact(EntityManagerInterface $entityManager,int $attributeId, int $secSymbolId)
     {
-        $attribute = $this->entityManager->find(Attribute::class, $attributeId);
-        $security = $this->entityManager->find(Security::class, $secSymbolId);
-        $result = $this->factRepository->getFact($attribute, $security);
+        $attribute = $entityManager->find(Attribute::class, $attributeId);
+        $security = $entityManager->find(Security::class, $secSymbolId);
+        $repo = $entityManager->getRepository(Fact::class);
+        $result = $repo->getFact($attribute, $security);
         if (!$result) {
             throw new CustomBadRequestHttpException([
                 'status' => 0,

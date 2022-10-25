@@ -28,12 +28,12 @@ class JsonDomainModel extends DomainModel
         return $this->fn;
     }
 
-    public function getArgA():mixed
+    public function getArgA()
     {
         return $this->a;
     }
 
-    public function getArgB():mixed
+    public function getArgB()
     {
         return $this->b;
     }

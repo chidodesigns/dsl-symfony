@@ -7,10 +7,12 @@ use App\Entity\Attribute;
 use App\Entity\Fact;
 use App\Entity\Security;
 use App\Exception\CustomBadRequestHttpException;
+use App\Services\QueryDataBuilder;
 use App\Services\QueryDataChecker;
-use App\Traits\EntityManagerTrait;
+use App\Services\QueryDataExecutor;
 use App\Traits\SecurityManagerTrait;
 use App\Traits\StockpediaDomainModelTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +22,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FactsController extends AbstractController
 {
-    use EntityManagerTrait;
     use SecurityManagerTrait;
     use StockpediaDomainModelTrait;
 
+    /** @var EntityManagerInterface $entityManager */
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
 
     /**
      * @Route("/facts/dsl", name="app_facts_dsl")
@@ -89,11 +97,17 @@ class FactsController extends AbstractController
             ], 500);
         }
 
-        var_dump($jsonDomainModel->getFn());
+        //  Create & Run QueryDataBuilder
+        $queryDataExecutor = new QueryDataExecutor($this->entityManager);
+        //  Builds & Returns Query
+        $queryDataBuilder = new QueryDataBuilder($jsonDomainModel, $queryDataChecker, $queryDataExecutor);
 
-        // $queryBuildResponse = $this->domainModel->dslQueryBuilder($searchQuery);
 
-        return $this->json($queryDataChecker);
+   
+        return $this->json([
+            'query' => $queryToBeChecked,
+            'query_result' => $queryDataBuilder->getEvaluatedResult()
+        ]);
     }
 
     /**
@@ -142,25 +156,3 @@ class FactsController extends AbstractController
     }
 }
 
-
-//  Notes Cannot have two object keys named expression - so bug/flaw in current DSL
-//  Abstract The CustomBadExceptions Out Of Model Layer and Back into Controller 
-//  JSON Decode vs Symfony Serializer (had issues trying to get this installed)
-//  Using POSTMAN had issues duplicating two fields in JSON post BODY so have not built/test for two arguments of the same type.
-//  After building v1 I reaslise the current UML model of the DSL is to verbose - which I created - therefore the querybuilder is very rudimentary and only tackles a few use cases - it needs to be more dynamic.
-//  Better use for handling expressions would be using the Symfony Expression Language it would allow expressions and expression methods to be created a lot more smoothly.
-
-//  Postman Req:
-
-// {
-//     "security": "ABC",
-//     "expression": {
-//         "operator": {
-//             "fn": "+",
-//             "arguments": {
-//                 "attribute": "price",
-//                 "number": 2
-//             }
-//         }
-//     }
-// }

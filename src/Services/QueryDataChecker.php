@@ -56,7 +56,7 @@ class QueryDataChecker implements ArrayAccess
 
     }
 
-    protected function checkIfArray(array $dslArray): bool
+    public function checkIfArray(array $dslArray): bool
     {
         if(!is_array($dslArray)){
             return false;

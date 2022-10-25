@@ -12,10 +12,16 @@ trait SecurityManagerTrait
      * @param SecurityManager $securityManager
      * @Required
      */
-    public function setSecuirtyManager(SecurityManager $securityManager)
+    public function setSecurityManager(SecurityManager $securityManager)
     {
 
         $this->securityManager = $securityManager;
+    }
+
+    public function getSecurity($symbol)
+    {
+        $securitySymbol = $this->securityManager->findSecuritySymbol($symbol);
+        return  $securitySymbol;
     }
 
 }

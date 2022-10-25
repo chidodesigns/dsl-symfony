@@ -35,9 +35,9 @@ class StockpediaBasicModel
         //  [ENTITY MODEL] : keyword: security
         $securitySymbol = $this->checkDslQueryFormat($query, "security");
 
-        if ($securitySymbol) {
-            $this->security = $this->securityManager->findSecuritySymbol($query['security']);
-        }
+        // if ($securitySymbol) {
+        //     $this->security = $this->securityManager->findSecuritySymbol($query['security']);
+        // }
 
         //  [QUERY FORMATTER] : keyword: expression
         $expression = $this->checkDslQueryFormat($query, "expression");
@@ -62,10 +62,10 @@ class StockpediaBasicModel
 
         if($aDataType == 'string' && $bDataType == 'string')
         {
-            $attribute1 = $this->attributeManager->findAttributeName($query['expression']['a']);
-            $attribute2 = $this->attributeManager->findAttributeName($query['expression']['b']);
-            $this->factValue1 = $this->factManager->selectFact($attribute1['attr_id'], $this->security);
-            $this->factValue2 = $this->factManager->selectFact($attribute2['attr_id'], $this->security);
+            // $attribute1 = $this->attributeManager->findAttributeName($query['expression']['a']);
+            // $attribute2 = $this->attributeManager->findAttributeName($query['expression']['b']);
+            // $this->factValue1 = $this->factManager->selectFact($attribute1['attr_id'], $this->security);
+            // $this->factValue2 = $this->factManager->selectFact($attribute2['attr_id'], $this->security);
             if($this->fnType == 'subtract'){
                 $expression = $this->factValue2 . $this->fn . $this->factValue1;
             }else{
@@ -86,7 +86,7 @@ class StockpediaBasicModel
         //  Handles - When both arg expressions is NOT expressions
         if ($this->attribute !== null && $this->number !== null && $aDataType !== 'array' && $bDataType !== 'array')  {
             //  Search within the Fact Collection to find corresponding attribute && security
-            $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
+            // $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
 
             // if fn is an subtract operator arg b is the first value in expression according to operator behaviour arguments
             if($this->fnType == 'subtract'){
@@ -127,7 +127,7 @@ class StockpediaBasicModel
 
         if(($aDataType == 'array' && $bDataType !== 'array') || ($bDataType == 'array' && $aDataType !== 'array')){
          
-            $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
+            // $this->factValue = $this->factManager->selectFact($this->attribute['attr_id'], $this->security);
             
             if($aDataType == 'array' && $this->fnType == 'subtract'){
                
@@ -190,7 +190,7 @@ class StockpediaBasicModel
             case "string":
                 $this->dslArgIsString($arg);
                 if ($isArgAnExpression) {
-                    return array_merge($this->attributeManager->findAttributeName($arg), ['data_type' => $dataType]);
+                    // return array_merge($this->attributeManager->findAttributeName($arg), ['data_type' => $dataType]);
                 }
                 break;
             case "array":
@@ -216,7 +216,7 @@ class StockpediaBasicModel
 
     public function dslArgIsString($arg): array
     {
-        $this->attribute = $this->attributeManager->findAttributeName($arg);
+        // $this->attribute = $this->attributeManager->findAttributeName($arg);
         return $this->attribute;
     }
 
@@ -241,60 +241,60 @@ class StockpediaBasicModel
         return $expressionEvaluated;
     }
 
-    public function dslArgExpressionEvaluate($operator, $a, $b)
-    {
+    // public function dslArgExpressionEvaluate($operator, $a, $b)
+    // {
    
-        if ($a['data_type'] == 'string' && $b['data_type'] == 'string') {
-            $attributeFactVal1 = $this->factManager->selectFact($a['attr_id'], $this->security);
-            $attributeFactVal2 = $this->factManager->selectFact($b['attr_id'], $this->security);
+    //     if ($a['data_type'] == 'string' && $b['data_type'] == 'string') {
+    //         // $attributeFactVal1 = $this->factManager->selectFact($a['attr_id'], $this->security);
+    //         // $attributeFactVal2 = $this->factManager->selectFact($b['attr_id'], $this->security);
 
-            if($operator['operator_type'] == 'substract'){
-                $expression = $attributeFactVal2 . $operator .  $attributeFactVal1;
-            }else{
-                $expression = $attributeFactVal1 . $operator . $attributeFactVal2;
-            }
+    //         // if($operator['operator_type'] == 'substract'){
+    //         //     $expression = $attributeFactVal2 . $operator .  $attributeFactVal1;
+    //         // }else{
+    //         //     $expression = $attributeFactVal1 . $operator . $attributeFactVal2;
+    //         // }
            
-            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
-            return $evaluatedExpression;
-        }
+    //         // $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+    //         return $evaluatedExpression;
+    //     }
 
-        if ($a['data_type'] == 'string' && $b['data_type'] == 'integer') {
-            $attributeFactVal = $this->factManager->selectFact($a['attr_id'], $this->security);
-            $integerArg = $b['value'];
-            if(isset($operator['operator_type'])){
-                if($operator['operator_type']  == 'subtract'){
-                    $expression =  $integerArg . $operator['operator'] .  $attributeFactVal;
-                }
-            }else{
-                $expression = $attributeFactVal . $operator . $integerArg;
-            }
-            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
-            return $evaluatedExpression;
-        }
+    //     if ($a['data_type'] == 'string' && $b['data_type'] == 'integer') {
+    //         // $attributeFactVal = $this->factManager->selectFact($a['attr_id'], $this->security);
+    //         $integerArg = $b['value'];
+    //         // if(isset($operator['operator_type'])){
+    //         //     if($operator['operator_type']  == 'subtract'){
+    //         //         $expression =  $integerArg . $operator['operator'] .  $attributeFactVal;
+    //         //     }
+    //         // }else{
+    //         //     $expression = $attributeFactVal . $operator . $integerArg;
+    //         // }
+    //         // $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+    //         return $evaluatedExpression;
+    //     }
 
-        if ($b['data_type'] == 'string' && $a['data_type'] == 'integer') {
-            $attributeFactVal = $this->factManager->selectFact($b['attr_id'], $this->security);
-            $integerArg = $a['value'];
+    //     if ($b['data_type'] == 'string' && $a['data_type'] == 'integer') {
+    //         $attributeFactVal = $this->factManager->selectFact($b['attr_id'], $this->security);
+    //         $integerArg = $a['value'];
 
-            if($operator['operator_type'] == 'subtract'){
-                $expression = $attributeFactVal . $operator .  $integerArg;
-            }else{
-                $expression =  $integerArg . $operator . $attributeFactVal;
-            }
+    //         if($operator['operator_type'] == 'subtract'){
+    //             $expression = $attributeFactVal . $operator .  $integerArg;
+    //         }else{
+    //             $expression =  $integerArg . $operator . $attributeFactVal;
+    //         }
             
-            $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
-            return $evaluatedExpression;
-        }
+    //         $evaluatedExpression = $this->expressionLanguageService->evaluateExpression($expression);
+    //         return $evaluatedExpression;
+    //     }
 
-        //  NB - Ive ruled this out as there is not ruling to suggest that two intergers can be passed as arguments within an expression argument.
-        if ($a['data_type']  == 'integer' && $b['data_type'] == 'integer') {
-            throw new CustomBadRequestHttpException([
-                'status' => 0,
-                'errorCode' => 'QUERYF100',
-                'errorMessage' => 'Invalid Query Format: 2 integer arguments within your expression is not allowed'
-            ], 400);
-        }
-    }
+    //     //  NB - Ive ruled this out as there is not ruling to suggest that two intergers can be passed as arguments within an expression argument.
+    //     if ($a['data_type']  == 'integer' && $b['data_type'] == 'integer') {
+    //         throw new CustomBadRequestHttpException([
+    //             'status' => 0,
+    //             'errorCode' => 'QUERYF100',
+    //             'errorMessage' => 'Invalid Query Format: 2 integer arguments within your expression is not allowed'
+    //         ], 400);
+    //     }
+    // }
 
     public function dslArrayChecker(array $dslArray, int $arrayCount)
     {
