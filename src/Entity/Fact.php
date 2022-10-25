@@ -39,18 +39,6 @@ class Fact
     }
 
 
-    public function addFacts(Attribute $attribute, Security $security, int $value)
-    {
-        $this->stockpediaFacts = [
-            $attribute,
-            $security,
-            $this->setValue($value)
-        ];
-
-        dd($this->stockpediaFacts);
-
-    }
- 
     public function getSecurity()
     {
         return $this->security;
