@@ -23,6 +23,18 @@ class JsonDomainModel extends DomainModel
         $this->b = $this->expression['b'];
     }
 
+    // N.B - Added This Fn - resides on its parent but tests were failing
+    public function getSecurity():string
+    {
+        return $this->security;
+    }
+
+    // N.B - Added This Fn - resides on its parent but tests were failing
+    public function getExpression(): array
+    {
+        return $this->expression;
+    }
+
     public function getFn():string
     {
         return $this->fn;
