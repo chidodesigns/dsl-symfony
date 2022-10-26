@@ -18,7 +18,7 @@ class QueryDataExecutorTest extends KernelTestCase
     /** @var ExpressionLanguageService $expressionLanguageService */
     protected $expressionLanguageService;
 
-    protected $queryDataBuilder;
+    protected $queryDataExecutor;
 
     protected $expression;
 
@@ -31,7 +31,7 @@ class QueryDataExecutorTest extends KernelTestCase
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->expressionLanguageService = new ExpressionLanguageService();
 
-        $this->queryDataBuilder = new QueryDataExecutor($this->entityManager, $this->expressionLanguageService);
+        $this->queryDataExecutor = new QueryDataExecutor($this->entityManager, $this->expressionLanguageService);
 
         $this->expression = '1+2';
     }
@@ -43,18 +43,20 @@ class QueryDataExecutorTest extends KernelTestCase
         $this->entityManager = null;
     }
 
+    //  NB - Exception cases not tested
+
     /** @test */
     public function query_data_executor_class_can_be_created_returns_obj()
     {
 
-        $queryDataBuilder = new QueryDataExecutor($this->entityManager, $this->expressionLanguageService);
-        $this->assertIsObject($queryDataBuilder);
+        $queryDataExecutor = new QueryDataExecutor($this->entityManager, $this->expressionLanguageService);
+        $this->assertIsObject($queryDataExecutor);
     }
 
     /** @test */
     public function query_data_executor_get_security_from_db_fn_returns_entity_security_id()
     {
-        $securitySymbol = $this->queryDataBuilder->getSecurityFromDB('ABC');
+        $securitySymbol = $this->queryDataExecutor->getSecurityFromDB('ABC');
         $this->assertIsInt($securitySymbol);
         $this->assertEquals(1, $securitySymbol);
     }
@@ -62,7 +64,7 @@ class QueryDataExecutorTest extends KernelTestCase
     /** @test */
     public function query_data_executor_get_attribute_from_db_fn_returns_entity_attribute_id()
     {
-        $attribute = $this->queryDataBuilder->getAttributeFromDB('price');
+        $attribute = $this->queryDataExecutor->getAttributeFromDB('price');
         $this->assertIsInt($attribute['attr_id']);
         $this->assertEquals(1, $attribute['attr_id']);
         $this->assertIsString($attribute['attr_name']);
@@ -71,9 +73,9 @@ class QueryDataExecutorTest extends KernelTestCase
     /** @test */
     public function query_data_executor_get_fact_value_from_db_fn_returns_a_fact_value_int()
     {
-        $securitySymbol = $this->queryDataBuilder->getSecurityFromDB('ABC');
-        $attribute = $this->queryDataBuilder->getAttributeFromDB('price');
-        $factValue = $this->queryDataBuilder->getFactValueFromDB($attribute['attr_id'], $securitySymbol);
+        $securitySymbol = $this->queryDataExecutor->getSecurityFromDB('ABC');
+        $attribute = $this->queryDataExecutor->getAttributeFromDB('price');
+        $factValue = $this->queryDataExecutor->getFactValueFromDB($attribute['attr_id'], $securitySymbol);
         $this->assertIsInt($factValue);
         $this->assertEquals(1, $factValue);
     }
@@ -81,7 +83,7 @@ class QueryDataExecutorTest extends KernelTestCase
     /** @test */
     public function query_data_executor_execute_expression_returns_evaluated_expression()
     {
-        $evaluatedExpression = $this->queryDataBuilder->executeExpression($this->expression);
+        $evaluatedExpression = $this->queryDataExecutor->executeExpression($this->expression);
         $this->assertIsString($evaluatedExpression);
         $this->assertEquals(3, $evaluatedExpression);
     }

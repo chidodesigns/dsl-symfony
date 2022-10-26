@@ -89,8 +89,6 @@ class QueryDataBuilder
 
                 return $isArgExpressionFnSubtract;
 
-                //  @TODO Reminder To Check If $domainModelFn == 'subtract'
-
             }
 
             return true;
@@ -211,7 +209,7 @@ class QueryDataBuilder
             $a = $this->evaluateArgExpression($aArgExpression);
             return $this->argAExpressionResult = $a;
         } else {
-            $bArgExpression = $this->jsonDomainModel->getArgA();
+            $bArgExpression = $this->jsonDomainModel->getArgB();
             $this->checkArgExpressionValueIsValid($bArgExpression);
             $b = $this->evaluateArgExpression($bArgExpression);
             return $this->argAExpressionResult = $b;
