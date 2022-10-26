@@ -13,7 +13,7 @@ class QueryDataChecker implements ArrayAccess
         $this->expression = $expression;   
     }
 
-    protected function getArrayExpression() 
+    public function getArrayExpression() 
     {
         return $this->expression;
     }
@@ -43,10 +43,10 @@ class QueryDataChecker implements ArrayAccess
 
     public function offsetUnset($offset): void
     {
-        
+        //  not applicable to app - needed to satisfy ArrayAccess interface
     }
 
-    public function count(array $dslArray, int $arrayCount ): int
+    public function count(array $dslArray, int $arrayCount )
     {
         $count = count($dslArray);
         if($count !== $arrayCount){
