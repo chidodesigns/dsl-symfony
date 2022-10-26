@@ -12,7 +12,6 @@ use App\Services\QueryDataChecker;
 use App\Services\QueryDataExecutor;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,14 +29,15 @@ class FactsController extends AbstractController
     }
 
     /**
-     * @Route("/facts/dsl", name="app_facts_dsl")
-     * @Method({"POST"})
+     * @Route("/facts/dsl", name="app_facts_dsl", methods={"POST"})
      *
      * @return Response
      */
     public function dsl(Request $request): JsonResponse
     {
+        
         $query = $request->getContent();
+        // var_dump($query);
         $queryToBeChecked = json_decode($query, true);
 
         $queryDataChecker = new QueryDataChecker($queryToBeChecked);
