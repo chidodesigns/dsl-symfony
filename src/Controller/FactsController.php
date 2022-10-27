@@ -37,7 +37,7 @@ class FactsController extends AbstractController
     {
         
         $query = $request->getContent();
-        // var_dump($query);
+
         $queryToBeChecked = json_decode($query, true);
 
         $queryDataChecker = new QueryDataChecker($queryToBeChecked);

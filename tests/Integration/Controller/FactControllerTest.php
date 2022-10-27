@@ -6,6 +6,16 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class FactControllerTest extends WebTestCase
 {
+    public $client;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient(array(), array(), [
+            "HTTP_CONTENT_TYPE" => 'application/json',
+            "CONTENT_TYPE" => 'application/json',
+            " content-type" => 'application/json'
+        ]);
+    }
 
     /** @test */
     public function dslRoute()
@@ -23,13 +33,13 @@ class FactControllerTest extends WebTestCase
                 ],
                 "b" => 'sales'
             ]
-        );
-        $client = static::createClient([], [
-            'HTTP_CONTENT_TYPE'       => 'application/json',
-        ]);
-        $client->request('POST', '/facts/dsl', $expression);
 
-        $request = $client->getRequest();
+        );
+        $this->client = static::createClient();
+
+        $crawler = $this->client->request('POST', '/facts/dsl', [], [], [
+            "HTTP_CONTENT_TYPE" => 'application/json',
+        ],json_encode($expression));
 
         $this->assertResponseIsSuccessful();
     }
