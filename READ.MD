@@ -30,6 +30,5 @@ The goal of the project is to build a small interpreter for a JSON based DSL tha
 - Set up database URL in `env.test` 
 - USE FIXTURES CLASS TO LOAD DUMMY DATA: `php bin/console --env=test doctrine:fixtures:load`
 - Run Test: `php bin/phpunit`
-- Bug In Test: You can expect a bug to pop up when the test suite runs - was having issues with the ` static::createClient` making a request to the DSL from the test suite. Usually do not have issues with this - any debug tips welcomed. 
 
 
