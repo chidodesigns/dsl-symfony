@@ -8,7 +8,7 @@ The goal of the project is to build a small interpreter for a JSON based DSL tha
 - `composer install`
 - Start Symfony Server: `symfony console server:start`
 -  Using POSTMAN, We browser make a call to this `/facts/create` to build the DB. This will create the DB in the format given in the task.
-- The you can begin making queries to `facts/dsl`
+- Then you can begin making queries to `facts/dsl`
 
 ## Query Example 
 
